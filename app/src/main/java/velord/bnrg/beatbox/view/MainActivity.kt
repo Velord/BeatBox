@@ -25,6 +25,11 @@ class MainActivity : AppCompatActivity() {
         initAllViews()
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        beatBox.release()
+    }
+
     private fun initAllViews() {
         (DataBindingUtil.setContentView(this, R.layout.activity_main)
                 as ActivityMainBinding).apply {
@@ -43,7 +48,7 @@ class MainActivity : AppCompatActivity() {
             RecyclerView.ViewHolder(binding.root) {
 
         init {
-            binding.viewModel = SoundViewModel()
+            binding.viewModel = SoundViewModel(beatBox)
         }
 
         fun bind(sound: Sound) = binding.apply {
@@ -61,14 +66,16 @@ class MainActivity : AppCompatActivity() {
                 parent,
                 false
             ).apply {
+                // if using LiveData  case
                 lifecycleOwner = this@MainActivity
             }
             return SoundHolder(binding)
         }
 
         override fun onBindViewHolder(holder: SoundHolder, position: Int) {
-            val sound = sounds[position]
-            holder.bind(sound)
+            sounds[position].apply {
+                holder.bind(this)
+            }
         }
 
         override fun getItemCount(): Int = sounds.size

@@ -1,15 +1,25 @@
 package velord.bnrg.beatbox.viewModel
 
-import androidx.lifecycle.MutableLiveData
+import androidx.databinding.BaseObservable
+import androidx.databinding.Bindable
+import velord.bnrg.beatbox.model.BeatBox
 import velord.bnrg.beatbox.model.Sound
 
-class SoundViewModel {
+class SoundViewModel(private val beatBox: BeatBox) : BaseObservable() {
 
-    val title: MutableLiveData<String?> = MutableLiveData()
+    @get:Bindable
+    val title: String?
+        get() = sound?.name
 
     var sound: Sound? = null
         set(sound) {
             field = sound
-            title.postValue(sound?.name)
+            notifyChange()
         }
+
+    fun onButtonClicked() {
+        sound?.let {
+            beatBox.play(it)
+        }
+    }
 }

@@ -1,83 +1,23 @@
 package velord.bnrg.beatbox.view
 
 import android.os.Bundle
-import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
-import androidx.databinding.DataBindingUtil
-import androidx.recyclerview.widget.GridLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import velord.bnrg.beatbox.R
-import velord.bnrg.beatbox.databinding.ActivityMainBinding
-import velord.bnrg.beatbox.databinding.ListItemSoundBinding
-import velord.bnrg.beatbox.model.BeatBox
-import velord.bnrg.beatbox.model.Sound
-import velord.bnrg.beatbox.viewModel.SoundViewModel
+import velord.bnrg.beatbox.utils.initFragment
+
+private const val TAG = "MainActivity"
 
 class MainActivity : AppCompatActivity() {
 
-    private lateinit var beatBox: BeatBox
+    private val sf = supportFragmentManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        initBeatBox()
-
-        initAllViews()
+        setContentView(R.layout.activity_main)
+        initSoundListFragment()
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-        beatBox.release()
-    }
-
-    private fun initAllViews() {
-        (DataBindingUtil.setContentView(this, R.layout.activity_main)
-                as ActivityMainBinding).apply {
-            recyclerView.apply {
-                layoutManager = GridLayoutManager(context, 3)
-                adapter = SoundAdapter(beatBox.sounds)
-            }
-        }
-    }
-
-    private fun initBeatBox() {
-        beatBox = BeatBox(assets)
-    }
-
-    private inner class SoundHolder(private val binding: ListItemSoundBinding):
-            RecyclerView.ViewHolder(binding.root) {
-
-        init {
-            binding.viewModel = SoundViewModel(beatBox)
-        }
-
-        fun bind(sound: Sound) = binding.apply {
-            viewModel?.sound = sound
-            executePendingBindings()
-        }
-    }
-
-    private inner class SoundAdapter(private val sounds: List<Sound>):
-            RecyclerView.Adapter<SoundHolder>() {
-        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SoundHolder {
-            val binding = DataBindingUtil.inflate<ListItemSoundBinding>(
-                layoutInflater,
-                R.layout.list_item_sound,
-                parent,
-                false
-            ).apply {
-                // if using LiveData  case
-                lifecycleOwner = this@MainActivity
-            }
-            return SoundHolder(binding)
-        }
-
-        override fun onBindViewHolder(holder: SoundHolder, position: Int) {
-            sounds[position].apply {
-                holder.bind(this)
-            }
-        }
-
-        override fun getItemCount(): Int = sounds.size
+    private fun initSoundListFragment() {
+        initFragment(sf, SoundListFragment(),  R.id.fragment_container)
     }
 }

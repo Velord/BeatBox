@@ -24,7 +24,6 @@ private const val TAG = "SoundFragmentList"
 
 class SoundListFragment : Fragment() {
 
-    private lateinit var beatBox: BeatBox
     private lateinit var recyclerView: RecyclerView
     private lateinit var seekBarSpeed: TextView
     private lateinit var seekBar: SeekBar
@@ -43,7 +42,9 @@ class SoundListFragment : Fragment() {
             container,
             false) as SoundListFragmentBinding).apply {
             initBeatBox()
-            viewModel = SpeedRateViewModel(beatBox)
+            viewModel = SpeedRateViewModel(
+                soundListViewModel.beatBox,
+                soundListViewModel.speedRate)
             lifecycleOwner = activity
         }
 
@@ -54,29 +55,33 @@ class SoundListFragment : Fragment() {
 
     override fun onDestroy() {
         super.onDestroy()
-        beatBox.release()
+        soundListViewModel.speedRate = seekBar.progress
     }
 
     private fun initAllViews(view: View) {
         recyclerView =
             (view.findViewById(R.id.sound_recycler_view) as RecyclerView).apply {
                 layoutManager = GridLayoutManager(this@SoundListFragment.activity, 3)
-                adapter = SoundAdapter(beatBox.sounds)
+                adapter = SoundAdapter(soundListViewModel.beatBox.sounds)
             }
         seekBarSpeed = view.findViewById(R.id.seek_bar_speed)
         seekBar = view.findViewById(R.id.seekBar)
     }
 
     private fun initBeatBox() {
-        soundListViewModel.beatBox = BeatBox(activity!!.assets)
-        beatBox = soundListViewModel.beatBox
+        soundListViewModel.apply {
+            if (!this.beatBoxIsInit) {
+                this.beatBoxIsInit = true
+                this.beatBox = BeatBox(activity!!.assets)
+            }
+        }
     }
 
     private inner class SoundHolder(private val binding: ListItemSoundBinding) :
         RecyclerView.ViewHolder(binding.root) {
 
         init {
-            binding.viewModel = SoundViewModel(beatBox)
+            binding.viewModel = SoundViewModel(soundListViewModel.beatBox)
         }
 
         fun bind(sound: Sound) = binding.apply {

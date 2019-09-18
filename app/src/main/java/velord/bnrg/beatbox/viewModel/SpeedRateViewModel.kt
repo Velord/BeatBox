@@ -3,21 +3,18 @@ package velord.bnrg.beatbox.viewModel
 import android.util.Log
 import androidx.databinding.BaseObservable
 import androidx.databinding.Bindable
-import androidx.databinding.library.baseAdapters.BR
 import velord.bnrg.beatbox.model.BeatBox
-import kotlin.reflect.KProperty
-
+import java.math.RoundingMode
 
 private const val ANDROID_PROGRESS = "android:progress"
+private const val MIN_RATE = 0.1f
+private const val DIVIDER_RATE = 10f
 
-class SpeedRateViewModel(private val beatBox: BeatBox) : BaseObservable() {
+class SpeedRateViewModel(private val beatBox: BeatBox,
+                         speedRateInit: Int) : BaseObservable() {
 
-    private fun changePlayBackSpeed(progress: Float) {
-        beatBox.speedRate = progress
-    }
-
-    private var playbackSpeed: Int = 0
-    private var playbackSpeedDisplay: Int = 0
+    private var playbackSpeed: Int = speedRateInit
+    private var playbackSpeedDisplay: Int = playbackSpeed
 
     @Bindable
     fun getPlaybackSpeed(): Int {
@@ -28,13 +25,13 @@ class SpeedRateViewModel(private val beatBox: BeatBox) : BaseObservable() {
         this.playbackSpeed = speed
         notifyChange()
         setPlaybackSpeedDisplay(speed)
-        changePlayBackSpeed(speed.toFloat())
+        changePlayBackSpeed(intToFloat(speed))
         Log.d("PlaybackSpeedViewModel", "Playback Speed set at $speed")
     }
 
-    @Bindable
+    @Bindable // how this impossible to return string ?
     fun getPlaybackSpeedDisplay(): String {
-        return Integer.toString(playbackSpeedDisplay)
+        return intToFloat(playbackSpeedDisplay).toString()
     }
 
     fun setPlaybackSpeedDisplay(speed: Int) {
@@ -42,50 +39,14 @@ class SpeedRateViewModel(private val beatBox: BeatBox) : BaseObservable() {
         notifyChange()
     }
 
-//    companion object {
-//        @BindingAdapter(ANDROID_PROGRESS)
-//        @JvmStatic
-//        fun setSeekBarProgress(seekBar: SeekBar, progress: Int) {
-//            try {
-//                seekBar.progress = progress
-//            } catch (nfe: Resources.NotFoundException) {
-//                nfe.printStackTrace()
-//            }
-//
-//        }
-//
-//        @InverseBindingAdapter(attribute = ANDROID_PROGRESS)
-//        @JvmStatic
-//        fun getSeekBarProgress(seekBar: SeekBar): Int {
-//            try {
-//                return (seekBar.progress)
-//            } catch (nfe: Resources.NotFoundException) {
-//                nfe.printStackTrace()
-//                return 0
-//            }
-//
-//        }
-//    }
-}
-
-class DelegatedBindable<T>(private var value: T,
-                           private val observer: BaseObservable) {
-
-    private var bindingTarget: Int = -1
-
-    operator fun getValue(thisRef: Any?, p: KProperty<*>) = value
-
-    operator fun setValue(thisRef: Any?, p: KProperty<*>, v: T) {
-
-        val oldValue = value
-        value = v
-        if (bindingTarget == -1) {
-            bindingTarget = BR::class.java.fields.filter {
-                it.name == p.name
-            }[0].getInt(null)
-        }
-        observer.notifyPropertyChanged(bindingTarget)
+    private fun changePlayBackSpeed(progress: Float) {
+        beatBox.speedRate = progress
     }
-}
 
+    private fun intToFloat(value: Int) =
+        (MIN_RATE + (value / DIVIDER_RATE))
+            .toBigDecimal()
+            .setScale(1, RoundingMode.DOWN)
+            .toFloat()
+}
 

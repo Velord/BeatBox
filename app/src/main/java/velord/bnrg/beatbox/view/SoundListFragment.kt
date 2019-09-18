@@ -61,7 +61,8 @@ class SoundListFragment : Fragment() {
     private fun initAllViews(view: View) {
         recyclerView =
             (view.findViewById(R.id.sound_recycler_view) as RecyclerView).apply {
-                layoutManager = GridLayoutManager(this@SoundListFragment.activity, 3)
+                layoutManager =
+                    GridLayoutManager(this@SoundListFragment.activity, 3)
                 adapter = SoundAdapter(soundListViewModel.beatBox.sounds)
             }
         seekBarSpeed = view.findViewById(R.id.seek_bar_speed)
